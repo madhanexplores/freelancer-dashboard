@@ -1,0 +1,287 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: incomes
+    // Fields:
+    //   - source: string (required, size < 100)
+    //   - amount: number (required, positive)
+    //   - category: string (optional, size < 50)
+    //   - date: string (optional, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: expenses
+    // Fields:
+    //   - description: string (required, size < 200)
+    //   - amount: number (required, positive)
+    //   - category: string (optional, size < 50)
+    //   - date: string (optional, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: goals
+    // Fields:
+    //   - title: string (required, size < 100)
+    //   - targetAmount: number (required, positive)
+    //   - currentAmount: number (required, non-negative)
+    //   - deadline: string (optional, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - completed: bool (required)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: notes
+    // Fields:
+    //   - content: string (required, size < 5000)
+    //   - date: string (optional, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: reminders
+    // Fields:
+    //   - text: string (required, size < 200)
+    //   - date: string (optional, format YYYY-MM-DD)
+    //   - time: string (optional, format HH:MM)
+    //   - userId: string (required, immutable)
+    //   - completed: bool (required)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: projects
+    // Fields:
+    //   - name: string (required, size < 100)
+    //   - client: string (required, size < 100)
+    //   - status: string (required, enum: active, completed, on-hold)
+    //   - deadline: string (optional, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: clients
+    // Fields:
+    //   - name: string (required, size < 100)
+    //   - email: string (optional, format email)
+    //   - phone: string (optional, size < 20)
+    //   - website: string (optional, format uri)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // Collection: time_entries
+    // Fields:
+    //   - task: string (required, size < 200)
+    //   - duration: number (required, positive)
+    //   - date: string (required, format YYYY-MM-DD)
+    //   - userId: string (required, immutable)
+    //   - createdAt: timestamp (optional, server-generated)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "madhankumar18072007@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isPositive(field) {
+      return request.resource.data[field] is number && request.resource.data[field] > 0;
+    }
+
+    function isNonNegative(field) {
+      return request.resource.data[field] is number && request.resource.data[field] >= 0;
+    }
+
+    function isValidString(field, maxLen) {
+      return request.resource.data[field] is string && request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, maxLen) {
+      return !(field in request.resource.data) || (request.resource.data[field] is string && request.resource.data[field].size() <= maxLen);
+    }
+
+    function uidUnchanged() {
+      return request.resource.data.userId == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidIncome(data) {
+      return hasRequiredFields(['source', 'amount', 'userId']) &&
+             hasOnlyAllowedFields(['source', 'amount', 'category', 'date', 'userId', 'createdAt']) &&
+             isValidString('source', 100) &&
+             isPositive('amount') &&
+             isValidOptionalString('category', 50) &&
+             isValidOptionalString('date', 10) &&
+             data.userId is string;
+    }
+
+    function isValidExpense(data) {
+      return hasRequiredFields(['description', 'amount', 'userId']) &&
+             hasOnlyAllowedFields(['description', 'amount', 'category', 'date', 'userId', 'createdAt']) &&
+             isValidString('description', 200) &&
+             isPositive('amount') &&
+             isValidOptionalString('category', 50) &&
+             isValidOptionalString('date', 10) &&
+             data.userId is string;
+    }
+
+    function isValidGoal(data) {
+      return hasRequiredFields(['title', 'targetAmount', 'currentAmount', 'userId', 'completed']) &&
+             hasOnlyAllowedFields(['title', 'targetAmount', 'currentAmount', 'deadline', 'userId', 'completed', 'createdAt']) &&
+             isValidString('title', 100) &&
+             isPositive('targetAmount') &&
+             isNonNegative('currentAmount') &&
+             isValidOptionalString('deadline', 10) &&
+             data.completed is bool &&
+             data.userId is string;
+    }
+
+    function isValidNote(data) {
+      return hasRequiredFields(['content', 'userId']) &&
+             hasOnlyAllowedFields(['content', 'date', 'userId', 'createdAt']) &&
+             isValidString('content', 5000) &&
+             isValidOptionalString('date', 10) &&
+             data.userId is string;
+    }
+
+    function isValidReminder(data) {
+      return hasRequiredFields(['text', 'userId', 'completed']) &&
+             hasOnlyAllowedFields(['text', 'date', 'time', 'userId', 'completed', 'createdAt']) &&
+             isValidString('text', 200) &&
+             isValidOptionalString('date', 10) &&
+             isValidOptionalString('time', 5) &&
+             data.completed is bool &&
+             data.userId is string;
+    }
+
+    function isValidProject(data) {
+      return hasRequiredFields(['name', 'client', 'status', 'userId']) &&
+             hasOnlyAllowedFields(['name', 'client', 'status', 'deadline', 'userId', 'createdAt']) &&
+             isValidString('name', 100) &&
+             isValidString('client', 100) &&
+             data.status in ['active', 'completed', 'on-hold'] &&
+             isValidOptionalString('deadline', 10) &&
+             data.userId is string;
+    }
+
+    function isValidClient(data) {
+      return hasRequiredFields(['name', 'userId']) &&
+             hasOnlyAllowedFields(['name', 'email', 'phone', 'website', 'userId', 'createdAt']) &&
+             isValidString('name', 100) &&
+             isValidOptionalString('email', 100) &&
+             isValidOptionalString('phone', 20) &&
+             isValidOptionalString('website', 200) &&
+             data.userId is string;
+    }
+
+    function isValidTimeEntry(data) {
+      return hasRequiredFields(['task', 'duration', 'date', 'userId']) &&
+             hasOnlyAllowedFields(['task', 'duration', 'date', 'userId', 'createdAt']) &&
+             isValidString('task', 200) &&
+             isPositive('duration') &&
+             isValidString('date', 10) &&
+             data.userId is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && hasOnlyAllowedFields(['name', 'email', 'role', 'createdAt']) && request.resource.data.role == 'user';
+      allow update: if isOwner(userId) && hasOnlyAllowedFields(['name', 'email', 'role', 'createdAt']) && request.resource.data.role == resource.data.role;
+    }
+
+    match /incomes/{incomeId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidIncome(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidIncome(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidExpense(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidExpense(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /goals/{goalId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidGoal(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidGoal(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /notes/{noteId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidNote(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidNote(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /reminders/{reminderId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidReminder(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidReminder(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /projects/{projectId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidProject(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidProject(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /clients/{clientId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidClient(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidClient(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /time_entries/{entryId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidTimeEntry(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidTimeEntry(request.resource.data) && uidNotModified();
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

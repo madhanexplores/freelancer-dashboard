@@ -1,0 +1,21 @@
+{
+  "name": "Freelancer Hub",
+  "short_name": "FreeHub",
+  "description": "All-in-one workspace for freelancers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/hub/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/hub/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

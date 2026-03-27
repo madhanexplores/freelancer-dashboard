@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --tooltip-bg: #ffffff;
+    --tooltip-text: #000000;
+  }
+
+  .dark {
+    --tooltip-bg: #111111;
+    --tooltip-text: #ffffff;
+  }
+
+  /* Theme-specific background and text colors */
+  .midnight {
+    background-color: #020617;
+    color: #f8fafc;
+  }
+  
+  .midnight .bg-white {
+    background-color: #0f172a;
+  }
+  
+  .midnight .border-gray-200 {
+    border-color: #1e293b;
+  }
+
+  .forest {
+    background-color: #052e16;
+    color: #f0fdf4;
+  }
+  
+  .forest .bg-white {
+    background-color: #064e3b;
+  }
+  
+  .forest .border-gray-200 {
+    border-color: #065f46;
+  }
+
+  .sunset {
+    background-color: #450a0a;
+    color: #fef2f2;
+  }
+  
+  .sunset .bg-white {
+    background-color: #7f1d1d;
+  }
+  
+  .sunset .border-gray-200 {
+    border-color: #991b1b;
+  }
+
+  body {
+    @apply transition-colors duration-200;
+  }
+}
