@@ -1,124 +1,120 @@
 {
   "entities": {
-    "Income": {
-      "title": "Income",
-      "description": "Represents a source of income for the freelancer.",
+    "Project": {
+      "title": "Project",
+      "description": "A freelance project",
       "type": "object",
       "properties": {
-        "source": { "type": "string", "description": "The source of the income (e.g., project name)." },
-        "amount": { "type": "number", "description": "The amount earned." },
-        "category": { "type": "string", "description": "Category of income (e.g., Project, Retainer)." },
-        "date": { "type": "string", "format": "date", "description": "The date the income was received." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this record." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "name": { "type": "string" },
+        "client": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed"] },
+        "progress": { "type": "number" },
+        "deadline": { "type": "string", "format": "date" },
+        "userId": { "type": "string" }
       },
-      "required": ["source", "amount", "userId"]
+      "required": ["name", "client", "status", "userId"]
     },
-    "Expense": {
-      "title": "Expense",
-      "description": "Represents a business expense.",
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction",
       "type": "object",
       "properties": {
-        "description": { "type": "string", "description": "Description of the expense." },
-        "amount": { "type": "number", "description": "The amount spent." },
-        "category": { "type": "string", "description": "Category of expense (e.g., Software, Equipment)." },
-        "date": { "type": "string", "format": "date", "description": "The date of the expense." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this record." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "category": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "userId": { "type": "string" }
       },
-      "required": ["description", "amount", "userId"]
+      "required": ["amount", "type", "date", "userId"]
     },
     "Goal": {
       "title": "Goal",
-      "description": "A financial goal to track progress towards.",
+      "description": "A financial or project goal",
       "type": "object",
       "properties": {
-        "title": { "type": "string", "description": "The title of the goal." },
-        "targetAmount": { "type": "number", "description": "The target amount to reach." },
-        "currentAmount": { "type": "number", "description": "The current progress towards the goal." },
-        "deadline": { "type": "string", "format": "date", "description": "The target date to reach the goal." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this goal." },
-        "completed": { "type": "boolean", "description": "Whether the goal has been reached." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "title": { "type": "string" },
+        "target": { "type": "number" },
+        "current": { "type": "number" },
+        "deadline": { "type": "string", "format": "date" },
+        "userId": { "type": "string" }
       },
-      "required": ["title", "targetAmount", "userId"]
+      "required": ["title", "target", "userId"]
     },
     "Note": {
       "title": "Note",
-      "description": "A daily note or thought.",
+      "description": "A daily note or thought",
       "type": "object",
       "properties": {
-        "content": { "type": "string", "description": "The content of the note." },
-        "date": { "type": "string", "format": "date", "description": "The date the note was written." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this note." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "content": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
       },
-      "required": ["content", "userId"]
+      "required": ["content", "date", "userId"]
     },
-    "Reminder": {
-      "title": "Reminder",
-      "description": "A task or reminder for a specific time.",
+    "Workout": {
+      "title": "Workout",
+      "description": "A gym workout session",
       "type": "object",
       "properties": {
-        "text": { "type": "string", "description": "The reminder text." },
-        "date": { "type": "string", "format": "date", "description": "The date for the reminder." },
-        "time": { "type": "string", "description": "The time for the reminder." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this reminder." },
-        "completed": { "type": "boolean", "description": "Whether the reminder is completed." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "exercise": { "type": "string" },
+        "sets": { "type": "number" },
+        "reps": { "type": "number" },
+        "weight": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "userId": { "type": "string" }
       },
-      "required": ["text", "userId"]
+      "required": ["exercise", "sets", "reps", "userId"]
     },
-    "Project": {
-      "title": "Project",
-      "description": "Represents a project for a client.",
+    "Checklist": {
+      "title": "Checklist Item",
+      "description": "A workout task or habit",
       "type": "object",
       "properties": {
-        "name": { "type": "string", "description": "The name of the project." },
-        "client": { "type": "string", "description": "The name of the client." },
-        "status": { "type": "string", "enum": ["active", "completed", "on-hold"], "description": "Current status of the project." },
-        "deadline": { "type": "string", "format": "date", "description": "The deadline for the project." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this project." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "text": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "userId": { "type": "string" }
       },
-      "required": ["name", "client", "userId"]
+      "required": ["text", "completed", "userId"]
     },
     "Client": {
       "title": "Client",
-      "description": "Represents a client's contact information.",
+      "description": "A professional contact",
       "type": "object",
       "properties": {
-        "name": { "type": "string", "description": "The name of the client." },
-        "email": { "type": "string", "format": "email", "description": "The client's email address." },
-        "phone": { "type": "string", "description": "The client's phone number." },
-        "website": { "type": "string", "format": "uri", "description": "The client's website URL." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this client record." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "company": { "type": "string" },
+        "phone": { "type": "string" },
+        "notes": { "type": "string" },
+        "userId": { "type": "string" }
       },
       "required": ["name", "userId"]
     },
-    "TimeEntry": {
-      "title": "TimeEntry",
-      "description": "Represents a tracked time entry for a task.",
+    "Invoice": {
+      "title": "Invoice",
+      "description": "A client invoice",
       "type": "object",
       "properties": {
-        "task": { "type": "string", "description": "The task being tracked." },
-        "duration": { "type": "number", "description": "The duration of the task in seconds." },
-        "date": { "type": "string", "format": "date", "description": "The date the task was tracked." },
-        "userId": { "type": "string", "description": "The ID of the user who owns this time entry." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." }
+        "invoiceNumber": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Draft", "Sent", "Paid", "Overdue"] },
+        "dueDate": { "type": "string", "format": "date" },
+        "items": { "type": "array" },
+        "userId": { "type": "string" }
       },
-      "required": ["task", "duration", "userId"]
+      "required": ["invoiceNumber", "clientId", "amount", "status", "userId"]
     }
   },
   "firestore": {
-    "incomes": { "schema": "Income", "description": "Collection of income records." },
-    "expenses": { "schema": "Expense", "description": "Collection of expense records." },
-    "goals": { "schema": "Goal", "description": "Collection of financial goals." },
-    "notes": { "schema": "Note", "description": "Collection of daily notes." },
-    "reminders": { "schema": "Reminder", "description": "Collection of reminders." },
-    "projects": { "schema": "Project", "description": "Collection of projects." },
-    "clients": { "schema": "Client", "description": "Collection of clients." },
-    "time_entries": { "schema": "TimeEntry", "description": "Collection of time entries." }
+    "/projects/{projectId}": { "schema": "Project", "description": "User projects" },
+    "/transactions/{transactionId}": { "schema": "Transaction", "description": "Financial records" },
+    "/goals/{goalId}": { "schema": "Goal", "description": "User goals" },
+    "/notes/{noteId}": { "schema": "Note", "description": "Daily notes" },
+    "/workouts/{workoutId}": { "schema": "Workout", "description": "Gym workouts" },
+    "/clients/{clientId}": { "schema": "Client", "description": "Client contacts" },
+    "/checklists/{checklistId}": { "schema": "Checklist", "description": "Workout habits/tasks" }
   }
 }
